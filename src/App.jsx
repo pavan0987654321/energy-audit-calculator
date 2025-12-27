@@ -333,16 +333,7 @@ function App() {
               </div>
             </div>
           </div>
-          <hr className="border-secondary" />
-          <div className="text-center py-3">
-            <p className="mb-0">
-              © 2024 Energy Audit Calculator | Built for Energy Auditors & Engineering Students
-            </p>
-            <p className="mb-0 small mt-2">
-              <i className="bi bi-heart-fill text-danger me-1"></i>
-              Production-Ready • Interview-Ready • Open Source
-            </p>
-          </div>
+          
         </Container>
       </footer>
     </div>
