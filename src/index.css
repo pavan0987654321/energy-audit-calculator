@@ -1,419 +1,172 @@
-/* ============================================
-   ENERGY AUDIT CALCULATOR - CUSTOM STYLES
-   ============================================ */
+@import 'tailwindcss';
 
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
-  margin: 0;
-  padding: 0;
-}
-
-/* ============================================
-   ANIMATIONS
-   ============================================ */
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+/* Custom Glassmorphism Classes */
+@layer components {
+  .glass-card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
   }
-  to {
+
+  .glass-navbar {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(40px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  /* IMPROVED STAT CARDS */
+  .stat-card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    padding: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(15, 118, 110, 0.1) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .stat-card:hover {
+    box-shadow: 0 0 30px rgba(15, 118, 110, 0.4);
+    transform: translateY(-6px) scale(1.02);
+    border-color: rgba(15, 118, 110, 0.5);
+  }
+
+  .stat-card:hover::before {
     opacity: 1;
+  }
+
+  .btn-primary {
+    background-color: #0F766E;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(15, 118, 110, 0.3);
+  }
+
+  .btn-primary:hover {
+    background-color: #0d5f58;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(15, 118, 110, 0.5);
+  }
+
+  .btn-primary:active {
     transform: translateY(0);
   }
-}
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-30px);
+  .btn-secondary {
+    background: transparent;
+    border: 2px solid #2563EB;
+    color: #2563EB;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 500;
+    transition: all 0.2s ease;
   }
-  to {
-    opacity: 1;
-    transform: translateX(0);
+
+  .btn-secondary:hover {
+    background: rgba(37, 99, 235, 0.1);
+    box-shadow: 0 0 20px rgba(37, 99, 235, 0.3);
+    border-color: #3b82f6;
+  }
+
+  /* IMPROVED INPUT FOCUS */
+  .input-dark {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    color: #E5E7EB;
+    transition: all 0.2s ease;
+  }
+
+  .input-dark::placeholder {
+    color: #9CA3AF;
+  }
+
+  .input-dark:focus {
+    border-color: #2563EB;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+    outline: none;
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .input-dark:hover:not(:focus) {
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .label-dark {
+    color: #E5E7EB;
+    font-weight: 500;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+    display: block;
   }
 }
 
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
+/* Dark Theme Base Styles */
+body {
+  background-color: #0B1220;
+  color: #E5E7EB;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
-.fade-in {
-  animation: fadeIn 0.5s ease-in-out;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-weight: 600;
 }
 
-.slide-in {
-  animation: slideIn 0.4s ease-out;
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
 }
 
-.pulse-animation {
-  animation: pulse 2s ease-in-out infinite;
-}
-
-/* ============================================
-   CARD STYLES
-   ============================================ */
-
-.metric-card {
-  transition: all 0.3s ease;
-  border: none;
-  border-radius: 15px;
-  overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.metric-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
-}
-
-.card {
-  border-radius: 15px;
-  border: none;
-}
-
-.card-header {
-  border-bottom: none;
-  border-radius: 15px 15px 0 0 !important;
-  padding: 1.5rem;
-}
-
-/* ============================================
-   GRADIENT BACKGROUNDS
-   ============================================ */
-
-.gradient-blue {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.gradient-green {
-  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-}
-
-.gradient-orange {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
-.gradient-purple {
-  background: linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%);
-}
-
-.gradient-red {
-  background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
-}
-
-.gradient-yellow {
-  background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
-}
-
-.gradient-teal {
-  background: linear-gradient(135deg, #06beb6 0%, #48b1bf 100%);
-}
-
-.gradient-indigo {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-/* ============================================
-   CUSTOM SCROLLBAR
-   ============================================ */
-
+/* Custom Scrollbar for Dark Theme */
 ::-webkit-scrollbar {
-  width: 12px;
+  width: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
+  background: #0B1220;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #4e54c8 0%, #5f3d99 100%);
+  background: rgba(255, 255, 255, 0.3);
 }
 
-/* ============================================
-   FORM STYLES
-   ============================================ */
-
-.form-control:focus,
-.form-select:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
-}
-
-.form-control,
-.form-select {
-  border-radius: 8px;
-  border: 2px solid #e0e0e0;
-  padding: 0.75rem;
-  transition: all 0.3s ease;
-}
-
-.form-control:hover,
-.form-select:hover {
-  border-color: #667eea;
-}
-
-.form-label {
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 0.5rem;
-}
-
-/* ============================================
-   BUTTON STYLES
-   ============================================ */
-
-.btn {
-  border-radius: 10px;
-  padding: 0.75rem 1.5rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  border: none;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-  background: linear-gradient(135deg, #5568d3 0%, #654a8f 100%);
-}
-
-.btn-success {
-  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-  box-shadow: 0 4px 15px rgba(17, 153, 142, 0.4);
-}
-
-.btn-success:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(17, 153, 142, 0.6);
-  background: linear-gradient(135deg, #0e8178 0%, #2dd36f 100%);
-}
-
-.btn-outline-primary:hover {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-color: transparent;
-}
-
-/* ============================================
-   NAVBAR STYLES
-   ============================================ */
-
-.navbar-custom {
-  background: white;
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-  padding: 1rem 0;
-}
-
-.navbar-brand {
-  font-weight: 700;
-  font-size: 1.5rem;
-  color: #667eea !important;
-}
-
-.nav-link {
-  font-weight: 600;
-  transition: all 0.3s ease;
-}
-
-.nav-link:hover {
-  color: #667eea !important;
-  transform: translateY(-2px);
-}
-
-/* ============================================
-   FOOTER STYLES
-   ============================================ */
-
-.footer-custom {
-  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-  color: white;
-  padding: 40px 0 20px 0;
-  margin-top: 60px;
-}
-
-.footer-custom a {
-  color: #bdc3c7;
-  text-decoration: none;
-  transition: all 0.3s ease;
-}
-
-.footer-custom a:hover {
-  color: #667eea;
-  transform: translateX(5px);
-  display: inline-block;
-}
-
-/* ============================================
-   METRIC CARDS
-   ============================================ */
-
-.metric-value {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin: 0.5rem 0;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.metric-label {
-  font-size: 0.9rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  opacity: 0.9;
-}
-
-.metric-unit {
-  font-size: 1rem;
-  font-weight: 500;
-  opacity: 0.8;
-}
-
-/* ============================================
-   LOADING SPINNER
-   ============================================ */
-
-.spinner-border-custom {
-  width: 3rem;
-  height: 3rem;
-  border-width: 0.3em;
-}
-
-.loading-overlay {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 15px;
-  padding: 3rem;
-}
-
-/* ============================================
-   BADGE STYLES
-   ============================================ */
-
-.badge {
-  border-radius: 8px;
-  padding: 0.5rem 1rem;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-/* ============================================
-   HERO SECTION
-   ============================================ */
-
-.hero-section {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
-  color: white;
-  padding: 4rem 0;
-  border-radius: 20px;
-  margin-bottom: 2rem;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-}
-
-.hero-title {
-  font-size: 3rem;
-  font-weight: 800;
-  margin-bottom: 1rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.hero-subtitle {
-  font-size: 1.3rem;
-  font-weight: 400;
-  opacity: 0.95;
-}
-
-/* ============================================
-   RESPONSIVE DESIGN
-   ============================================ */
-
-@media (max-width: 768px) {
-  .hero-title {
-    font-size: 2rem !important;
-  }
-  
-  .hero-subtitle {
-    font-size: 1rem !important;
-  }
-  
-  .metric-value {
-    font-size: 1.8rem !important;
-  }
-  
-  .metric-card {
-    margin-bottom: 15px;
-  }
-
-  .card-body {
-    padding: 1rem;
-  }
-}
-
-/* ============================================
-   UTILITY CLASSES
-   ============================================ */
-
-.shadow-custom {
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-}
-
-.rounded-custom {
-  border-radius: 15px;
-}
-
-.text-gradient {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* ============================================
-   PRINT STYLES
-   ============================================ */
-
+/* Print Styles */
 @media print {
   .no-print {
     display: none !important;
   }
-  
+
   body {
     background: white !important;
+    color: black !important;
   }
-  
-  .card {
-    page-break-inside: avoid;
-  }
-}
-
-/* ============================================
-   ACCESSIBILITY
-   ============================================ */
-
-*:focus-visible {
-  outline: 3px solid #667eea;
-  outline-offset: 2px;
-}
-
-/* ============================================
-   SMOOTH SCROLLING
-   ============================================ */
-
-html {
-  scroll-behavior: smooth;
 }

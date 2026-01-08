@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Form, Button, Card, Row, Col, Alert } from 'react-bootstrap';
 
 const EnergyInputForm = ({ onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -19,7 +18,6 @@ const EnergyInputForm = ({ onSubmit }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error when user types
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -27,7 +25,7 @@ const EnergyInputForm = ({ onSubmit }) => {
 
   const validate = () => {
     const newErrors = {};
-    
+
     if (!formData.equipmentName.trim()) {
       newErrors.equipmentName = 'Equipment name is required';
     }
@@ -94,235 +92,206 @@ const EnergyInputForm = ({ onSubmit }) => {
   };
 
   return (
-    <Card className="shadow-lg border-0 fade-in">
-      <Card.Header className="gradient-blue text-white">
-        <div className="d-flex justify-content-between align-items-center">
-          <h4 className="mb-0">
-            <i className="bi bi-lightning-charge-fill me-2"></i>
-            Energy Audit Input
-          </h4>
-          <Button 
-            variant="light" 
-            size="sm" 
-            onClick={loadDemoData}
-            className="d-flex align-items-center"
-          >
-            <i className="bi bi-play-fill me-1"></i>
-            Try Demo
-          </Button>
+    <div className="glass-card p-6 md:p-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <h2 className="font-heading text-2xl font-semibold text-text-primary">
+          Energy Audit Input
+        </h2>
+        {/* PREMIUM TRY DEMO BUTTON */}
+        <button
+          type="button"
+          onClick={loadDemoData}
+          className="group relative px-6 py-2.5 bg-gradient-to-r from-primary to-secondary text-white rounded-lg font-medium text-sm overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/50 hover:scale-105 flex items-center gap-2"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-secondary to-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <svg className="w-4 h-4 relative z-10" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
+          </svg>
+          <span className="relative z-10">Try Demo</span>
+        </button>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+
+        {/* Equipment Name */}
+        <div>
+          <label className="label-dark">Equipment Name *</label>
+          <input
+            type="text"
+            name="equipmentName"
+            value={formData.equipmentName}
+            onChange={handleChange}
+            placeholder="e.g., Industrial Motor, LED Lighting System"
+            className={`input-dark w-full ${errors.equipmentName ? 'border-accent' : ''}`}
+          />
+          {errors.equipmentName && (
+            <p className="text-accent text-sm mt-1">{errors.equipmentName}</p>
+          )}
         </div>
-      </Card.Header>
-      <Card.Body className="p-4">
-        <Form onSubmit={handleSubmit}>
-          
-          {/* Equipment Name */}
-          <Row className="mb-3">
-            <Col md={12}>
-              <Form.Group>
-                <Form.Label><i className="bi bi-gear-fill text-primary me-2"></i>Equipment Name *</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="equipmentName"
-                  value={formData.equipmentName}
-                  onChange={handleChange}
-                  placeholder="e.g., Industrial Motor, LED Lighting System"
-                  isInvalid={!!errors.equipmentName}
-                />
-                <Form.Control.Feedback type="invalid">
-                  {errors.equipmentName}
-                </Form.Control.Feedback>
-              </Form.Group>
-            </Col>
-          </Row>
 
-          {/* Power Consumption Section */}
-          <Card className="mb-3 border-primary bg-light">
-            <Card.Body>
-              <h6 className="text-primary mb-3">
-                <i className="bi bi-lightning-fill me-2"></i>
-                Power Consumption
-              </h6>
-              <Row>
-                <Col md={6} className="mb-3">
-                  <Form.Group>
-                    <Form.Label>Existing Power (kW) *</Form.Label>
-                    <Form.Control
-                      type="number"
-                      step="0.01"
-                      name="existingPower"
-                      value={formData.existingPower}
-                      onChange={handleChange}
-                      placeholder="0.00"
-                      isInvalid={!!errors.existingPower}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.existingPower}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                </Col>
-                <Col md={6} className="mb-3">
-                  <Form.Group>
-                    <Form.Label>Proposed Power (kW) *</Form.Label>
-                    <Form.Control
-                      type="number"
-                      step="0.01"
-                      name="proposedPower"
-                      value={formData.proposedPower}
-                      onChange={handleChange}
-                      placeholder="0.00"
-                      isInvalid={!!errors.proposedPower}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.proposedPower}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                </Col>
-              </Row>
-            </Card.Body>
-          </Card>
-
-          {/* Operating Schedule Section */}
-          <Card className="mb-3 border-success bg-light">
-            <Card.Body>
-              <h6 className="text-success mb-3">
-                <i className="bi bi-clock-fill me-2"></i>
-                Operating Schedule
-              </h6>
-              <Row>
-                <Col md={6} className="mb-3">
-                  <Form.Group>
-                    <Form.Label>Hours per Day *</Form.Label>
-                    <Form.Control
-                      type="number"
-                      step="0.1"
-                      name="operatingHoursPerDay"
-                      value={formData.operatingHoursPerDay}
-                      onChange={handleChange}
-                      placeholder="0.0"
-                      isInvalid={!!errors.operatingHoursPerDay}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.operatingHoursPerDay}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                </Col>
-                <Col md={6} className="mb-3">
-                  <Form.Group>
-                    <Form.Label>Days per Year *</Form.Label>
-                    <Form.Control
-                      type="number"
-                      step="1"
-                      name="operatingDaysPerYear"
-                      value={formData.operatingDaysPerYear}
-                      onChange={handleChange}
-                      placeholder="365"
-                      isInvalid={!!errors.operatingDaysPerYear}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.operatingDaysPerYear}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                </Col>
-              </Row>
-            </Card.Body>
-          </Card>
-
-          {/* Financial Parameters Section */}
-          <Card className="mb-3 border-warning bg-light">
-            <Card.Body>
-              <h6 className="text-warning mb-3">
-                <i className="bi bi-currency-rupee me-2"></i>
-                Financial Parameters
-              </h6>
-              <Row>
-                <Col md={6} className="mb-3">
-                  <Form.Group>
-                    <Form.Label>Electricity Cost (₹/kWh) *</Form.Label>
-                    <Form.Control
-                      type="number"
-                      step="0.01"
-                      name="electricityCost"
-                      value={formData.electricityCost}
-                      onChange={handleChange}
-                      placeholder="0.00"
-                      isInvalid={!!errors.electricityCost}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.electricityCost}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                </Col>
-                <Col md={6} className="mb-3">
-                  <Form.Group>
-                    <Form.Label>Initial Investment (₹) *</Form.Label>
-                    <Form.Control
-                      type="number"
-                      step="1"
-                      name="initialInvestment"
-                      value={formData.initialInvestment}
-                      onChange={handleChange}
-                      placeholder="0"
-                      isInvalid={!!errors.initialInvestment}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.initialInvestment}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                </Col>
-                <Col md={6} className="mb-3">
-                  <Form.Group>
-                    <Form.Label>Project Life (years) *</Form.Label>
-                    <Form.Control
-                      type="number"
-                      step="1"
-                      name="projectLife"
-                      value={formData.projectLife}
-                      onChange={handleChange}
-                      placeholder="10"
-                      isInvalid={!!errors.projectLife}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.projectLife}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                </Col>
-                <Col md={6} className="mb-3">
-                  <Form.Group>
-                    <Form.Label>Discount Rate (%) *</Form.Label>
-                    <Form.Control
-                      type="number"
-                      step="0.1"
-                      name="discountRate"
-                      value={formData.discountRate}
-                      onChange={handleChange}
-                      placeholder="10.0"
-                      isInvalid={!!errors.discountRate}
-                    />
-                    <Form.Control.Feedback type="invalid">
-                      {errors.discountRate}
-                    </Form.Control.Feedback>
-                  </Form.Group>
-                </Col>
-              </Row>
-            </Card.Body>
-          </Card>
-
-          {/* Submit Button */}
-          <div className="d-grid">
-            <Button 
-              variant="primary" 
-              type="submit" 
-              size="lg"
-              className="d-flex align-items-center justify-content-center"
-            >
-              <i className="bi bi-calculator-fill me-2"></i>
-              Calculate Investment Returns
-              <i className="bi bi-arrow-right-circle-fill ms-2"></i>
-            </Button>
+        {/* IMPROVED SECTIONS - SUBTLE STYLING */}
+        {/* Power Consumption Section */}
+        <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+          <h3 className="font-heading text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
+            <svg className="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            Power Consumption
+          </h3>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="label-dark">Existing Power (kW) *</label>
+              <input
+                type="number"
+                step="0.01"
+                name="existingPower"
+                value={formData.existingPower}
+                onChange={handleChange}
+                placeholder="0.00"
+                className={`input-dark w-full ${errors.existingPower ? 'border-accent' : ''}`}
+              />
+              {errors.existingPower && (
+                <p className="text-accent text-sm mt-1">{errors.existingPower}</p>
+              )}
+            </div>
+            <div>
+              <label className="label-dark">Proposed Power (kW) *</label>
+              <input
+                type="number"
+                step="0.01"
+                name="proposedPower"
+                value={formData.proposedPower}
+                onChange={handleChange}
+                placeholder="0.00"
+                className={`input-dark w-full ${errors.proposedPower ? 'border-accent' : ''}`}
+              />
+              {errors.proposedPower && (
+                <p className="text-accent text-sm mt-1">{errors.proposedPower}</p>
+              )}
+            </div>
           </div>
-        </Form>
-      </Card.Body>
-    </Card>
+        </div>
+
+        {/* Operating Schedule Section */}
+        <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+          <h3 className="font-heading text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
+            <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Operating Schedule
+          </h3>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="label-dark">Hours per Day *</label>
+              <input
+                type="number"
+                step="0.1"
+                name="operatingHoursPerDay"
+                value={formData.operatingHoursPerDay}
+                onChange={handleChange}
+                placeholder="0.0"
+                className={`input-dark w-full ${errors.operatingHoursPerDay ? 'border-accent' : ''}`}
+              />
+              {errors.operatingHoursPerDay && (
+                <p className="text-accent text-sm mt-1">{errors.operatingHoursPerDay}</p>
+              )}
+            </div>
+            <div>
+              <label className="label-dark">Days per Year *</label>
+              <input
+                type="number"
+                step="1"
+                name="operatingDaysPerYear"
+                value={formData.operatingDaysPerYear}
+                onChange={handleChange}
+                placeholder="365"
+                className={`input-dark w-full ${errors.operatingDaysPerYear ? 'border-accent' : ''}`}
+              />
+              {errors.operatingDaysPerYear && (
+                <p className="text-accent text-sm mt-1">{errors.operatingDaysPerDay}</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Financial Parameters Section */}
+        <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+          <h3 className="font-heading text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
+            <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Financial Parameters
+          </h3>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="label-dark">Electricity Cost (₹/kWh) *</label>
+              <input
+                type="number"
+                step="0.01"
+                name="electricityCost"
+                value={formData.electricityCost}
+                onChange={handleChange}
+                placeholder="0.00"
+                className={`input-dark w-full ${errors.electricityCost ? 'border-accent' : ''}`}
+              />
+              {errors.electricityCost && (
+                <p className="text-accent text-sm mt-1">{errors.electricityCost}</p>
+              )}
+            </div>
+            <div>
+              <label className="label-dark">Initial Investment (₹) *</label>
+              <input
+                type="number"
+                step="1"
+                name="initialInvestment"
+                value={formData.initialInvestment}
+                onChange={handleChange}
+                placeholder="0"
+                className={`input-dark w-full ${errors.initialInvestment ? 'border-accent' : ''}`}
+              />
+              {errors.initialInvestment && (
+                <p className="text-accent text-sm mt-1">{errors.initialInvestment}</p>
+              )}
+            </div>
+            <div>
+              <label className="label-dark">Project Life (years) *</label>
+              <input
+                type="number"
+                step="1"
+                name="projectLife"
+                value={formData.projectLife}
+                onChange={handleChange}
+                placeholder="10"
+                className={`input-dark w-full ${errors.projectLife ? 'border-accent' : ''}`}
+              />
+              {errors.projectLife && (
+                <p className="text-accent text-sm mt-1">{errors.projectLife}</p>
+              )}
+            </div>
+            <div>
+              <label className="label-dark">Discount Rate (%) *</label>
+              <input
+                type="number"
+                step="0.1"
+                name="discountRate"
+                value={formData.discountRate}
+                onChange={handleChange}
+                placeholder="10.0"
+                className={`input-dark w-full ${errors.discountRate ? 'border-accent' : ''}`}
+              />
+              {errors.discountRate && (
+                <p className="text-accent text-sm mt-1">{errors.discountRate}</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Submit Button */}
+        <button type="submit" className="btn-primary w-full text-lg py-4 font-semibold">
+          Calculate Investment Returns
+        </button>
+      </form>
+    </div>
   );
 };
 

@@ -1,5 +1,4 @@
 import React from 'react';
-import { Card, Row, Col } from 'react-bootstrap';
 import { evaluateInvestmentDecision } from '../utils/calculations';
 
 const ResultsSummary = ({ results }) => {
@@ -22,160 +21,123 @@ const ResultsSummary = ({ results }) => {
     });
   };
 
-  // Industry-grade investment decision
-  const investmentDecision = evaluateInvestmentDecision(
-    irr,
-    simplePaybackPeriod
-  );
+  const investmentDecision = evaluateInvestmentDecision(irr, simplePaybackPeriod);
+
+  const stats = [
+    {
+      icon: (
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      ),
+      label: 'Annual Energy Savings',
+      value: formatNumber(annualEnergySavings, 0),
+      unit: 'kWh / year',
+      color: 'text-secondary'
+    },
+    {
+      icon: (
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      label: 'Annual Cost Savings',
+      value: `₹ ${formatNumber(annualCostSavings, 0)}`,
+      unit: 'per year',
+      color: 'text-primary'
+    },
+    {
+      icon: (
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      label: 'Payback Period',
+      value: formatNumber(simplePaybackPeriod, 2),
+      unit: 'years',
+      color: simplePaybackPeriod <= 3 ? 'text-primary' : simplePaybackPeriod <= 5 ? 'text-accent' : 'text-accent'
+    },
+    {
+      icon: (
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      label: 'CO₂ Emission Reduction',
+      value: co2ReductionTons?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      unit: 'tons CO₂ / year',
+      color: 'text-primary'
+    },
+    {
+      icon: (
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+      ),
+      label: 'Net Present Value',
+      value: `₹ ${formatNumber(npv, 0)}`,
+      unit: npv > 0 ? 'Profitable' : 'Loss',
+      color: npv > 0 ? 'text-secondary' : 'text-accent'
+    },
+    {
+      icon: (
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+        </svg>
+      ),
+      label: 'Internal Rate of Return',
+      value: `${formatNumber(irr, 2)}%`,
+      unit: 'annual return',
+      color: irr >= 15 ? 'text-primary' : irr >= 10 ? 'text-accent' : 'text-accent'
+    },
+  ];
 
   return (
-    <div className="fade-in">
-      <Card className="shadow-lg border-0 mb-4">
-        <Card.Header className="gradient-purple text-white">
-          <h4 className="mb-0">
-            <i className="bi bi-graph-up-arrow me-2"></i>
-            Investment Analysis Results
-          </h4>
-        </Card.Header>
+    <div className="space-y-6">
+      <h2 className="font-heading text-2xl font-semibold text-text-primary">
+        Investment Analysis Results
+      </h2>
 
-        <Card.Body className="p-4">
-          <Row>
+      {/* Stat Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {stats.map((stat, index) => (
+          <div key={index} className="stat-card">
+            <div className={`${stat.color} mb-4`}>
+              {stat.icon}
+            </div>
+            <div className="text-text-secondary text-xs uppercase tracking-wider font-semibold mb-2">
+              {stat.label}
+            </div>
+            <div className="text-text-primary text-3xl font-heading font-bold mb-1">
+              {stat.value}
+            </div>
+            <div className="text-text-secondary text-sm">
+              {stat.unit}
+            </div>
+          </div>
+        ))}
+      </div>
 
-            {/* Annual Energy Savings */}
-            <Col lg={4} md={6} className="mb-3">
-              <Card className="metric-card gradient-blue text-white h-100">
-                <Card.Body className="text-center">
-                  <i className="bi bi-lightning-charge display-4 mb-2"></i>
-                  <div className="metric-label">Annual Energy Savings</div>
-                  <div className="metric-value">
-                    {formatNumber(annualEnergySavings, 0)}
-                  </div>
-                  <div className="metric-unit">kWh / year</div>
-                </Card.Body>
-              </Card>
-            </Col>
-
-            {/* Annual Cost Savings */}
-            <Col lg={4} md={6} className="mb-3">
-              <Card className="metric-card gradient-green text-white h-100">
-                <Card.Body className="text-center">
-                  <i className="bi bi-currency-rupee display-4 mb-2"></i>
-                  <div className="metric-label">Annual Cost Savings</div>
-                  <div className="metric-value">
-                    ₹ {formatNumber(annualCostSavings, 0)}
-                  </div>
-                  <div className="metric-unit">per year</div>
-                </Card.Body>
-              </Card>
-            </Col>
-
-            {/* Payback Period */}
-            <Col lg={4} md={6} className="mb-3">
-              <Card
-                className={`metric-card text-white h-100 ${
-                  simplePaybackPeriod <= 3
-                    ? 'gradient-teal'
-                    : simplePaybackPeriod <= 5
-                    ? 'gradient-yellow'
-                    : 'gradient-orange'
-                }`}
-              >
-                <Card.Body className="text-center">
-                  <i className="bi bi-clock-history display-4 mb-2"></i>
-                  <div className="metric-label">Payback Period</div>
-                  <div className="metric-value">
-                    {formatNumber(simplePaybackPeriod, 2)}
-                  </div>
-                  <div className="metric-unit">years</div>
-                </Card.Body>
-              </Card>
-            </Col>
-
-            {/* CO₂ Emission Reduction */}
-            <Col lg={4} md={6} className="mb-3">
-              <Card className="metric-card bg-success text-white h-100">
-                <Card.Body className="text-center">
-                  <i className="bi bi-tree-fill display-4 mb-2"></i>
-                  <div className="metric-label">CO₂ Emission Reduction</div>
-                  <div className="metric-value">
-                    {co2ReductionTons?.toLocaleString('en-IN', {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2
-                    })}
-                  </div>
-                  <div className="metric-unit">tons CO₂ / year</div>
-                  <div className="small mt-2" style={{ opacity: 0.9 }}>
-                    {co2ReductionKg?.toLocaleString('en-IN', {
-                      maximumFractionDigits: 0
-                    })} kg / year
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
-
-            {/* Net Present Value */}
-            <Col lg={4} md={6} className="mb-3">
-              <Card
-                className={`metric-card text-white h-100 ${
-                  npv > 0 ? 'gradient-indigo' : 'gradient-red'
-                }`}
-              >
-                <Card.Body className="text-center">
-                  <i className="bi bi-cash-stack display-4 mb-2"></i>
-                  <div className="metric-label">Net Present Value</div>
-                  <div className="metric-value">
-                    ₹ {formatNumber(npv, 0)}
-                  </div>
-                  <div className="metric-unit">
-                    {npv > 0 ? 'Profitable' : 'Loss'}
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
-
-            {/* IRR */}
-            <Col lg={4} md={6} className="mb-3">
-              <Card
-                className={`metric-card text-white h-100 ${
-                  irr >= 15
-                    ? 'gradient-green'
-                    : irr >= 10
-                    ? 'gradient-yellow'
-                    : 'gradient-orange'
-                }`}
-              >
-                <Card.Body className="text-center">
-                  <i className="bi bi-percent display-4 mb-2"></i>
-                  <div className="metric-label">Internal Rate of Return</div>
-                  <div className="metric-value">
-                    {formatNumber(irr, 2)}%
-                  </div>
-                  <div className="metric-unit">annual return</div>
-                </Card.Body>
-              </Card>
-            </Col>
-
-            {/* Investment Decision */}
-            <Col lg={4} md={6} className="mb-3">
-              <Card
-                className={`metric-card ${investmentDecision.bgClass} text-white h-100`}
-              >
-                <Card.Body className="text-center d-flex flex-column justify-content-center">
-                  <i className={`${investmentDecision.icon} display-4 mb-3`}></i>
-                  <div className="metric-label">Investment Decision</div>
-                  <div className="metric-value" style={{ fontSize: '1.8rem' }}>
-                    {investmentDecision.label}
-                  </div>
-                  <div className="metric-unit small mt-2" style={{ opacity: 0.9 }}>
-                    {investmentDecision.description}
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
-
-          </Row>
-        </Card.Body>
-      </Card>
+      {/* Investment Decision Card */}
+      <div className={`glass-card p-6 border-2 ${investmentDecision.label === 'Highly Recommended' ? 'border-primary' :
+          investmentDecision.label === 'Recommended' ? 'border-secondary' :
+            investmentDecision.label === 'Acceptable' ? 'border-accent' : 'border-accent'
+        }`}>
+        <div className="text-center">
+          <div className="text-text-secondary text-sm uppercase tracking-wider font-semibold mb-3">
+            Investment Decision
+          </div>
+          <div className={`text-3xl font-heading font-bold mb-2 ${investmentDecision.label === 'Highly Recommended' ? 'text-primary' :
+              investmentDecision.label === 'Recommended' ? 'text-secondary' :
+                investmentDecision.label === 'Acceptable' ? 'text-accent' : 'text-accent'
+            }`}>
+            {investmentDecision.label}
+          </div>
+          <div className="text-text-secondary">
+            {investmentDecision.description}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
