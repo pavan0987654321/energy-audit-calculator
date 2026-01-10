@@ -1,5 +1,95 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 
+/**
+ * Premium Input Component - DEFINED OUTSIDE to prevent re-mounting
+ */
+const PremiumInput = ({
+  name,
+  label,
+  unit,
+  type = 'text',
+  step,
+  value,
+  onChange,
+  onFocus,
+  onBlur,
+  isFocused,
+  hasError,
+  errorMessage
+}) => {
+  return (
+    <motion.div
+      className="relative"
+      whileHover={{ scale: 1.01 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+    >
+      <input
+        type={type}
+        step={step}
+        name={name}
+        id={name}
+        value={value}
+        onChange={onChange}
+        onFocus={onFocus}
+        onBlur={onBlur}
+        placeholder={label + (unit ? ` (${unit})` : '')}
+        className="w-full px-4 py-3.5 rounded-xl transition-all duration-200 outline-none text-sm"
+        style={{
+          background: hasError ? 'rgba(245, 158, 11, 0.06)' : 'rgba(255, 255, 255, 0.03)',
+          border: `1px solid ${hasError ? 'rgba(245, 158, 11, 0.4)' : isFocused ? 'rgba(99, 102, 241, 0.5)' : 'rgba(255, 255, 255, 0.08)'}`,
+          color: '#F1F5F9',
+          boxShadow: isFocused
+            ? '0 0 0 3px rgba(99, 102, 241, 0.1), 0 4px 20px rgba(99, 102, 241, 0.1)'
+            : 'none',
+        }}
+      />
+
+      {hasError && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold px-2 py-0.5 rounded"
+          style={{
+            background: 'rgba(245, 158, 11, 0.15)',
+            color: '#FBBF24'
+          }}
+        >
+          {errorMessage}
+        </motion.div>
+      )}
+    </motion.div>
+  );
+};
+
+/**
+ * Section Header Component
+ */
+const SectionHeader = ({ icon, title, subtitle }) => (
+  <div className="flex items-center gap-3 mb-4">
+    <div
+      className="w-10 h-10 rounded-xl flex items-center justify-center text-base"
+      style={{
+        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0.05) 100%)',
+        border: '1px solid rgba(99, 102, 241, 0.2)',
+      }}
+    >
+      {icon}
+    </div>
+    <div>
+      <h3 className="text-sm font-semibold" style={{ color: '#F1F5F9' }}>
+        {title}
+      </h3>
+      {subtitle && (
+        <p className="text-[10px]" style={{ color: '#64748B' }}>{subtitle}</p>
+      )}
+    </div>
+  </div>
+);
+
+/**
+ * Energy Input Form - System Configuration
+ */
 const EnergyInputForm = ({ onSubmit }) => {
   const [formData, setFormData] = useState({
     equipmentName: '',
@@ -14,6 +104,8 @@ const EnergyInputForm = ({ onSubmit }) => {
   });
 
   const [errors, setErrors] = useState({});
+  const [focusedField, setFocusedField] = useState(null);
+  const [showErrors, setShowErrors] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -23,36 +115,44 @@ const EnergyInputForm = ({ onSubmit }) => {
     }
   };
 
+  const handleFocus = (name) => {
+    setFocusedField(name);
+  };
+
+  const handleBlur = () => {
+    setFocusedField(null);
+  };
+
   const validate = () => {
     const newErrors = {};
 
     if (!formData.equipmentName.trim()) {
-      newErrors.equipmentName = 'Equipment name is required';
+      newErrors.equipmentName = 'Required';
     }
 
     const numericFields = [
-      { name: 'existingPower', label: 'Existing power', min: 0.1 },
-      { name: 'proposedPower', label: 'Proposed power', min: 0.01 },
-      { name: 'operatingHoursPerDay', label: 'Operating hours', min: 0.1, max: 24 },
-      { name: 'operatingDaysPerYear', label: 'Operating days', min: 1, max: 365 },
-      { name: 'electricityCost', label: 'Electricity cost', min: 0.01 },
-      { name: 'initialInvestment', label: 'Initial investment', min: 1 },
-      { name: 'projectLife', label: 'Project life', min: 1, max: 50 },
-      { name: 'discountRate', label: 'Discount rate', min: 0, max: 100 }
+      { name: 'existingPower', min: 0.1 },
+      { name: 'proposedPower', min: 0.01 },
+      { name: 'operatingHoursPerDay', min: 0.1, max: 24 },
+      { name: 'operatingDaysPerYear', min: 1, max: 365 },
+      { name: 'electricityCost', min: 0.01 },
+      { name: 'initialInvestment', min: 1 },
+      { name: 'projectLife', min: 1, max: 50 },
+      { name: 'discountRate', min: 0, max: 100 }
     ];
 
     numericFields.forEach(field => {
       const value = parseFloat(formData[field.name]);
       if (!formData[field.name] || isNaN(value) || value < field.min) {
-        newErrors[field.name] = `${field.label} must be at least ${field.min}`;
+        newErrors[field.name] = 'Required';
       }
       if (field.max && value > field.max) {
-        newErrors[field.name] = `${field.label} cannot exceed ${field.max}`;
+        newErrors[field.name] = `Max ${field.max}`;
       }
     });
 
     if (parseFloat(formData.proposedPower) >= parseFloat(formData.existingPower)) {
-      newErrors.proposedPower = 'Proposed power must be less than existing power';
+      newErrors.proposedPower = 'Must be < current';
     }
 
     setErrors(newErrors);
@@ -61,6 +161,7 @@ const EnergyInputForm = ({ onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setShowErrors(true);
     if (validate()) {
       onSubmit({
         equipmentName: formData.equipmentName,
@@ -78,7 +179,7 @@ const EnergyInputForm = ({ onSubmit }) => {
 
   const loadDemoData = () => {
     setFormData({
-      equipmentName: 'Industrial Motor (50 HP)',
+      equipmentName: 'Industrial Motor Assembly (50 HP)',
       existingPower: '37.3',
       proposedPower: '29.8',
       operatingHoursPerDay: '16',
@@ -89,209 +190,235 @@ const EnergyInputForm = ({ onSubmit }) => {
       discountRate: '10'
     });
     setErrors({});
+    setShowErrors(false);
   };
 
+  const clearForm = () => {
+    setFormData({
+      equipmentName: '',
+      existingPower: '',
+      proposedPower: '',
+      operatingHoursPerDay: '',
+      operatingDaysPerYear: '',
+      electricityCost: '',
+      initialInvestment: '',
+      projectLife: '',
+      discountRate: ''
+    });
+    setErrors({});
+    setShowErrors(false);
+  };
+
+  // Helper to render input fields
+  const renderInput = (name, label, unit, type = 'text', step) => (
+    <PremiumInput
+      key={name}
+      name={name}
+      label={label}
+      unit={unit}
+      type={type}
+      step={step}
+      value={formData[name]}
+      onChange={handleChange}
+      onFocus={() => handleFocus(name)}
+      onBlur={handleBlur}
+      isFocused={focusedField === name}
+      hasError={showErrors && !!errors[name]}
+      errorMessage={errors[name]}
+    />
+  );
+
+  const errorCount = Object.keys(errors).length;
+
   return (
-    <div className="glass-card p-6 md:p-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <h2 className="font-heading text-2xl font-semibold text-text-primary">
-          Energy Audit Input
-        </h2>
-        {/* PREMIUM TRY DEMO BUTTON */}
-        <button
-          type="button"
-          onClick={loadDemoData}
-          className="group relative px-6 py-2.5 bg-gradient-to-r from-primary to-secondary text-white rounded-lg font-medium text-sm overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/50 hover:scale-105 flex items-center gap-2"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-secondary to-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-          <svg className="w-4 h-4 relative z-10" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
-          </svg>
-          <span className="relative z-10">Try Demo</span>
-        </button>
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      className="rounded-2xl p-6 md:p-8 relative overflow-hidden"
+      style={{
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.01) 100%)',
+        border: '1px solid rgba(255,255,255,0.06)',
+        backdropFilter: 'blur(20px)',
+      }}
+    >
+      {/* Subtle gradient mesh background */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse at 20% 20%, rgba(99, 102, 241, 0.04) 0%, transparent 50%)',
+        }}
+      />
+
+      {/* Header */}
+      <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <div
+              className="w-2 h-2 rounded-full"
+              style={{ background: '#6366F1' }}
+            />
+            <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#64748B' }}>
+              Analysis Engine
+            </span>
+          </div>
+          <h2
+            className="text-2xl font-bold"
+            style={{
+              fontFamily: "'Poppins', sans-serif",
+              color: '#F1F5F9',
+              letterSpacing: '-0.02em'
+            }}
+          >
+            System Configuration
+          </h2>
+          <p className="text-sm mt-1" style={{ color: '#64748B' }}>
+            Define operating parameters for investment analysis
+          </p>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-2">
+          <motion.button
+            type="button"
+            onClick={clearForm}
+            whileHover={{ scale: 1.02, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}
+            whileTap={{ scale: 0.98 }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium"
+            style={{
+              background: 'rgba(255, 255, 255, 0.04)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              color: '#94A3B8',
+            }}
+          >
+            Reset
+          </motion.button>
+          <motion.button
+            type="button"
+            onClick={loadDemoData}
+            whileHover={{ scale: 1.02, boxShadow: '0 4px 20px rgba(99, 102, 241, 0.2)' }}
+            whileTap={{ scale: 0.98 }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium"
+            style={{
+              background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.08) 100%)',
+              border: '1px solid rgba(99, 102, 241, 0.2)',
+              color: '#A5B4FC',
+            }}
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
+            </svg>
+            Demo Data
+          </motion.button>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-
-        {/* Equipment Name */}
+      <form onSubmit={handleSubmit} className="space-y-6 relative">
+        {/* Asset Identification */}
         <div>
-          <label className="label-dark">Equipment Name *</label>
-          <input
-            type="text"
-            name="equipmentName"
-            value={formData.equipmentName}
-            onChange={handleChange}
-            placeholder="e.g., Industrial Motor, LED Lighting System"
-            className={`input-dark w-full ${errors.equipmentName ? 'border-accent' : ''}`}
+          <SectionHeader
+            icon="🏢"
+            title="Asset Identification"
+            subtitle="Equipment or system under analysis"
           />
-          {errors.equipmentName && (
-            <p className="text-accent text-sm mt-1">{errors.equipmentName}</p>
-          )}
+          {renderInput('equipmentName', 'Equipment Name or ID', null, 'text')}
         </div>
 
-        {/* IMPROVED SECTIONS - SUBTLE STYLING */}
-        {/* Power Consumption Section */}
-        <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-          <h3 className="font-heading text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
-            <svg className="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            Power Consumption
-          </h3>
+        {/* Power Configuration */}
+        <div className="p-5 rounded-xl" style={{ background: 'rgba(0,0,0,0.12)' }}>
+          <SectionHeader
+            icon="⚡"
+            title="Power Profile"
+            subtitle="Current vs. proposed energy consumption"
+          />
           <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="label-dark">Existing Power (kW) *</label>
-              <input
-                type="number"
-                step="0.01"
-                name="existingPower"
-                value={formData.existingPower}
-                onChange={handleChange}
-                placeholder="0.00"
-                className={`input-dark w-full ${errors.existingPower ? 'border-accent' : ''}`}
-              />
-              {errors.existingPower && (
-                <p className="text-accent text-sm mt-1">{errors.existingPower}</p>
-              )}
-            </div>
-            <div>
-              <label className="label-dark">Proposed Power (kW) *</label>
-              <input
-                type="number"
-                step="0.01"
-                name="proposedPower"
-                value={formData.proposedPower}
-                onChange={handleChange}
-                placeholder="0.00"
-                className={`input-dark w-full ${errors.proposedPower ? 'border-accent' : ''}`}
-              />
-              {errors.proposedPower && (
-                <p className="text-accent text-sm mt-1">{errors.proposedPower}</p>
-              )}
-            </div>
+            {renderInput('existingPower', 'Baseline Power', 'kW', 'number', '0.01')}
+            {renderInput('proposedPower', 'Target Power', 'kW', 'number', '0.01')}
           </div>
         </div>
 
-        {/* Operating Schedule Section */}
-        <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-          <h3 className="font-heading text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
-            <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Operating Schedule
-          </h3>
+        {/* Operating Schedule */}
+        <div className="p-5 rounded-xl" style={{ background: 'rgba(0,0,0,0.12)' }}>
+          <SectionHeader
+            icon="🕐"
+            title="Operating Profile"
+            subtitle="Annual utilization parameters"
+          />
           <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="label-dark">Hours per Day *</label>
-              <input
-                type="number"
-                step="0.1"
-                name="operatingHoursPerDay"
-                value={formData.operatingHoursPerDay}
-                onChange={handleChange}
-                placeholder="0.0"
-                className={`input-dark w-full ${errors.operatingHoursPerDay ? 'border-accent' : ''}`}
-              />
-              {errors.operatingHoursPerDay && (
-                <p className="text-accent text-sm mt-1">{errors.operatingHoursPerDay}</p>
-              )}
-            </div>
-            <div>
-              <label className="label-dark">Days per Year *</label>
-              <input
-                type="number"
-                step="1"
-                name="operatingDaysPerYear"
-                value={formData.operatingDaysPerYear}
-                onChange={handleChange}
-                placeholder="365"
-                className={`input-dark w-full ${errors.operatingDaysPerYear ? 'border-accent' : ''}`}
-              />
-              {errors.operatingDaysPerYear && (
-                <p className="text-accent text-sm mt-1">{errors.operatingDaysPerDay}</p>
-              )}
-            </div>
+            {renderInput('operatingHoursPerDay', 'Daily Runtime', 'hrs', 'number', '0.1')}
+            {renderInput('operatingDaysPerYear', 'Annual Days', 'days', 'number', '1')}
           </div>
         </div>
 
-        {/* Financial Parameters Section */}
-        <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-          <h3 className="font-heading text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
-            <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Financial Parameters
-          </h3>
+        {/* Financial Parameters */}
+        <div className="p-5 rounded-xl" style={{ background: 'rgba(0,0,0,0.12)' }}>
+          <SectionHeader
+            icon="💰"
+            title="Financial Parameters"
+            subtitle="Capital and operating cost inputs"
+          />
           <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="label-dark">Electricity Cost (₹/kWh) *</label>
-              <input
-                type="number"
-                step="0.01"
-                name="electricityCost"
-                value={formData.electricityCost}
-                onChange={handleChange}
-                placeholder="0.00"
-                className={`input-dark w-full ${errors.electricityCost ? 'border-accent' : ''}`}
-              />
-              {errors.electricityCost && (
-                <p className="text-accent text-sm mt-1">{errors.electricityCost}</p>
-              )}
-            </div>
-            <div>
-              <label className="label-dark">Initial Investment (₹) *</label>
-              <input
-                type="number"
-                step="1"
-                name="initialInvestment"
-                value={formData.initialInvestment}
-                onChange={handleChange}
-                placeholder="0"
-                className={`input-dark w-full ${errors.initialInvestment ? 'border-accent' : ''}`}
-              />
-              {errors.initialInvestment && (
-                <p className="text-accent text-sm mt-1">{errors.initialInvestment}</p>
-              )}
-            </div>
-            <div>
-              <label className="label-dark">Project Life (years) *</label>
-              <input
-                type="number"
-                step="1"
-                name="projectLife"
-                value={formData.projectLife}
-                onChange={handleChange}
-                placeholder="10"
-                className={`input-dark w-full ${errors.projectLife ? 'border-accent' : ''}`}
-              />
-              {errors.projectLife && (
-                <p className="text-accent text-sm mt-1">{errors.projectLife}</p>
-              )}
-            </div>
-            <div>
-              <label className="label-dark">Discount Rate (%) *</label>
-              <input
-                type="number"
-                step="0.1"
-                name="discountRate"
-                value={formData.discountRate}
-                onChange={handleChange}
-                placeholder="10.0"
-                className={`input-dark w-full ${errors.discountRate ? 'border-accent' : ''}`}
-              />
-              {errors.discountRate && (
-                <p className="text-accent text-sm mt-1">{errors.discountRate}</p>
-              )}
-            </div>
+            {renderInput('electricityCost', 'Energy Rate', '₹/kWh', 'number', '0.01')}
+            {renderInput('initialInvestment', 'Capital Investment', '₹', 'number', '1')}
+            {renderInput('projectLife', 'Asset Life', 'years', 'number', '1')}
+            {renderInput('discountRate', 'Discount Rate', '%', 'number', '0.1')}
           </div>
         </div>
+
+        {/* Validation Error Summary */}
+        {showErrors && errorCount > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 rounded-xl flex items-center gap-3"
+            style={{
+              background: 'rgba(245, 158, 11, 0.08)',
+              border: '1px solid rgba(245, 158, 11, 0.2)',
+            }}
+          >
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+              style={{ background: 'rgba(245, 158, 11, 0.15)' }}
+            >
+              <svg className="w-4 h-4" style={{ color: '#FBBF24' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <span className="text-sm font-medium" style={{ color: '#FBBF24' }}>
+              Complete all required fields to proceed ({errorCount} remaining)
+            </span>
+          </motion.div>
+        )}
 
         {/* Submit Button */}
-        <button type="submit" className="btn-primary w-full text-lg py-4 font-semibold">
-          Calculate Investment Returns
-        </button>
+        <motion.button
+          type="submit"
+          className="w-full py-4 rounded-xl text-base font-semibold relative overflow-hidden group"
+          style={{
+            background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+            color: 'white',
+          }}
+          whileHover={{
+            scale: 1.01,
+            boxShadow: '0 8px 32px rgba(99, 102, 241, 0.3)',
+          }}
+          whileTap={{ scale: 0.99 }}
+        >
+          {/* Hover glow effect */}
+          <div
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            style={{ background: 'linear-gradient(135deg, #818CF8 0%, #A78BFA 100%)' }}
+          />
+
+          <span className="relative flex items-center justify-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+            Execute Investment Analysis
+          </span>
+        </motion.button>
       </form>
-    </div>
+    </motion.div>
   );
 };
 
