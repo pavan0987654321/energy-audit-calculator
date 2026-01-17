@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import { validateField, validateForm, isFormValid } from '../utils/formValidation';
+import { useFormDirty } from '../hooks/useFormDirty';
+import UnsavedChangesModal from './UnsavedChangesModal';
 
 /**
  * Premium Input Component - DEFINED OUTSIDE to prevent re-mounting
@@ -90,7 +93,7 @@ const SectionHeader = ({ icon, title, subtitle }) => (
 /**
  * Energy Input Form - System Configuration
  */
-const EnergyInputForm = ({ onSubmit }) => {
+const EnergyInputForm = ({ onSubmit, onReset, isLoading = false }) => {
   const [formData, setFormData] = useState({
     equipmentName: '',
     existingPower: '',
@@ -106,12 +109,32 @@ const EnergyInputForm = ({ onSubmit }) => {
   const [errors, setErrors] = useState({});
   const [focusedField, setFocusedField] = useState(null);
   const [showErrors, setShowErrors] = useState(false);
+  const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
+  const [touched, setTouched] = useState({});
+
+  // Track unsaved changes
+  const {
+    isDirty,
+    showModal,
+    confirmNavigation,
+    cancelNavigation,
+    resetDirty,
+  } = useFormDirty(formData);
+
+  // Real-time validation on form data changes
+  useEffect(() => {
+    const formErrors = validateForm(formData);
+    setErrors(formErrors);
+    setIsSubmitDisabled(!isFormValid(formData));
+  }, [formData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+
+    // Mark field as touched on first interaction
+    if (!touched[name]) {
+      setTouched(prev => ({ ...prev, [name]: true }));
     }
   };
 
@@ -119,49 +142,29 @@ const EnergyInputForm = ({ onSubmit }) => {
     setFocusedField(name);
   };
 
-  const handleBlur = () => {
+  const handleBlur = (name) => {
     setFocusedField(null);
+    // Mark field as touched when user leaves the field
+    setTouched(prev => ({ ...prev, [name]: true }));
   };
 
-  const validate = () => {
-    const newErrors = {};
-
-    if (!formData.equipmentName.trim()) {
-      newErrors.equipmentName = 'Required';
-    }
-
-    const numericFields = [
-      { name: 'existingPower', min: 0.1 },
-      { name: 'proposedPower', min: 0.01 },
-      { name: 'operatingHoursPerDay', min: 0.1, max: 24 },
-      { name: 'operatingDaysPerYear', min: 1, max: 365 },
-      { name: 'electricityCost', min: 0.01 },
-      { name: 'initialInvestment', min: 1 },
-      { name: 'projectLife', min: 1, max: 50 },
-      { name: 'discountRate', min: 0, max: 100 }
-    ];
-
-    numericFields.forEach(field => {
-      const value = parseFloat(formData[field.name]);
-      if (!formData[field.name] || isNaN(value) || value < field.min) {
-        newErrors[field.name] = 'Required';
-      }
-      if (field.max && value > field.max) {
-        newErrors[field.name] = `Max ${field.max}`;
-      }
-    });
-
-    if (parseFloat(formData.proposedPower) >= parseFloat(formData.existingPower)) {
-      newErrors.proposedPower = 'Must be < current';
-    }
-
+  const validate = useCallback(() => {
+    const newErrors = validateForm(formData);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [formData]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Mark all fields as touched on submit attempt
+    const allTouched = Object.keys(formData).reduce((acc, key) => {
+      acc[key] = true;
+      return acc;
+    }, {});
+    setTouched(allTouched);
     setShowErrors(true);
+
     if (validate()) {
       onSubmit({
         equipmentName: formData.equipmentName,
@@ -174,6 +177,8 @@ const EnergyInputForm = ({ onSubmit }) => {
         projectLife: parseFloat(formData.projectLife),
         discountRate: parseFloat(formData.discountRate)
       });
+      // Reset dirty state after successful submission
+      resetDirty();
     }
   };
 
@@ -194,6 +199,16 @@ const EnergyInputForm = ({ onSubmit }) => {
   };
 
   const clearForm = () => {
+    // Check if form has any data
+    const hasData = Object.values(formData).some(value => value !== '');
+
+    // Show confirmation if form has data
+    if (hasData) {
+      const confirmed = window.confirm('Are you sure you want to reset the form? All entered data will be lost.');
+      if (!confirmed) return;
+    }
+
+    // Reset all form fields to empty
     setFormData({
       equipmentName: '',
       existingPower: '',
@@ -205,8 +220,18 @@ const EnergyInputForm = ({ onSubmit }) => {
       projectLife: '',
       discountRate: ''
     });
+
+    // Clear all validation states
     setErrors({});
     setShowErrors(false);
+    setTouched({});
+    setIsSubmitDisabled(true);
+    setFocusedField(null);
+
+    // Call parent reset handler to clear results, toasts, etc.
+    if (onReset) {
+      onReset();
+    }
   };
 
   // Helper to render input fields
@@ -221,9 +246,9 @@ const EnergyInputForm = ({ onSubmit }) => {
       value={formData[name]}
       onChange={handleChange}
       onFocus={() => handleFocus(name)}
-      onBlur={handleBlur}
+      onBlur={() => handleBlur(name)}
       isFocused={focusedField === name}
-      hasError={showErrors && !!errors[name]}
+      hasError={(showErrors || touched[name]) && !!errors[name]}
       errorMessage={errors[name]}
     />
   );
@@ -393,31 +418,56 @@ const EnergyInputForm = ({ onSubmit }) => {
         {/* Submit Button */}
         <motion.button
           type="submit"
-          className="w-full py-4 rounded-xl text-base font-semibold relative overflow-hidden group"
+          disabled={isLoading || isSubmitDisabled}
+          className="w-full py-4 rounded-xl text-base font-semibold relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed"
           style={{
-            background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+            background: isSubmitDisabled
+              ? 'linear-gradient(135deg, #4B5563 0%, #374151 100%)'
+              : 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
             color: 'white',
           }}
-          whileHover={{
+          whileHover={(isLoading || isSubmitDisabled) ? {} : {
             scale: 1.01,
             boxShadow: '0 8px 32px rgba(99, 102, 241, 0.3)',
           }}
-          whileTap={{ scale: 0.99 }}
+          whileTap={(isLoading || isSubmitDisabled) ? {} : { scale: 0.99 }}
         >
           {/* Hover glow effect */}
-          <div
-            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-            style={{ background: 'linear-gradient(135deg, #818CF8 0%, #A78BFA 100%)' }}
-          />
+          {!isLoading && !isSubmitDisabled && (
+            <div
+              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              style={{ background: 'linear-gradient(135deg, #818CF8 0%, #A78BFA 100%)' }}
+            />
+          )}
 
           <span className="relative flex items-center justify-center gap-2">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-            </svg>
-            Execute Investment Analysis
+            {isLoading ? (
+              <>
+                <motion.div
+                  className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                />
+                Analyzing...
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+                Execute Investment Analysis
+              </>
+            )}
           </span>
         </motion.button>
       </form>
+
+      {/* Unsaved Changes Warning Modal */}
+      <UnsavedChangesModal
+        isOpen={showModal}
+        onDiscard={confirmNavigation}
+        onKeepEditing={cancelNavigation}
+      />
     </motion.div>
   );
 };

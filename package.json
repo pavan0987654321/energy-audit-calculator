@@ -12,13 +12,17 @@
   "dependencies": {
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
+    "@react-three/postprocessing": "^3.0.4",
     "bootstrap": "^5.3.8",
     "bootstrap-icons": "^1.13.1",
     "framer-motion": "^12.25.0",
+    "jspdf": "^4.0.0",
+    "jspdf-autotable": "^5.0.7",
     "react": "^19.2.0",
     "react-bootstrap": "^2.10.10",
     "react-dom": "^19.2.0",
     "recharts": "^3.6.0",
+    "simplex-noise": "^4.0.3",
     "three": "^0.182.0"
   },
   "devDependencies": {

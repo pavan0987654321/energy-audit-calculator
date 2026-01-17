@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { formatINRCurrency, formatIndianNumberDisplay } from '../utils/currencyUtils';
 
 /**
  * Animated counter with count-up effect
@@ -28,11 +29,11 @@ const AnimatedValue = ({ value, prefix = '', suffix = '', decimals = 0, duration
     };
   }, [value, duration]);
 
+  // Use custom formatting to avoid toLocaleString spacing issues
   const formattedValue = typeof value === 'number'
-    ? displayValue.toLocaleString('en-IN', {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals
-    })
+    ? (prefix === '₹'
+      ? formatINRCurrency(displayValue, { decimals, showSymbol: false })
+      : formatIndianNumberDisplay(displayValue, decimals))
     : value;
 
   return (
@@ -111,7 +112,7 @@ const MetricCard = ({ icon, label, value, prefix, suffix, decimals, color, delay
             {label}
           </div>
           <div
-            className="text-2xl md:text-3xl font-bold truncate"
+            className="text-2xl md:text-3xl font-bold break-words"
             style={{
               fontFamily: "'Poppins', sans-serif",
               color: color,
@@ -175,7 +176,7 @@ const ResultsSummary = ({ results, inputData }) => {
       label: 'Annual Savings',
       value: annualCostSavings,
       prefix: '₹',
-      decimals: 0,
+      decimals: 2,
       color: '#6366F1',
     },
     {
@@ -191,7 +192,7 @@ const ResultsSummary = ({ results, inputData }) => {
       label: 'Net Present Value',
       value: npv,
       prefix: '₹',
-      decimals: 0,
+      decimals: 2,
       color: npv >= 0 ? '#10B981' : '#F59E0B',
       isPositive: npv >= 0,
     },

@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { formatINRCurrency, formatIndianNumberDisplay } from '../utils/currencyUtils';
 
 /**
  * Comparison metric row with animated reveal
@@ -21,13 +22,13 @@ const ComparisonRow = ({ label, before, after, unit, reduction, delay }) => {
 
       <div className="text-center">
         <span className="text-sm tabular-nums" style={{ color: '#F87171' }}>
-          {before.toLocaleString('en-IN')} <span className="text-xs" style={{ color: '#64748B' }}>{unit}</span>
+          {formatIndianNumberDisplay(before)} <span className="text-xs" style={{ color: '#64748B' }}>{unit}</span>
         </span>
       </div>
 
       <div className="text-center">
         <span className="text-sm tabular-nums" style={{ color: '#10B981' }}>
-          {after.toLocaleString('en-IN')} <span className="text-xs" style={{ color: '#64748B' }}>{unit}</span>
+          {formatIndianNumberDisplay(after)} <span className="text-xs" style={{ color: '#64748B' }}>{unit}</span>
         </span>
       </div>
 
@@ -224,7 +225,7 @@ const SystemComparison = ({ results, inputData }) => {
             Energy Saved
           </div>
           <div className="text-lg font-bold tabular-nums" style={{ color: '#A5B4FC' }}>
-            {annualEnergySavings.toLocaleString('en-IN')} <span className="text-xs font-normal">kWh</span>
+            {formatIndianNumberDisplay(annualEnergySavings)} <span className="text-xs font-normal">kWh</span>
           </div>
         </motion.div>
 
@@ -239,7 +240,7 @@ const SystemComparison = ({ results, inputData }) => {
             Cost Saved
           </div>
           <div className="text-lg font-bold tabular-nums" style={{ color: '#10B981' }}>
-            ₹{annualCostSavings.toLocaleString('en-IN')}
+            {formatINRCurrency(annualCostSavings, { decimals: 0 })}
           </div>
         </motion.div>
 
