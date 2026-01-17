@@ -86,9 +86,13 @@ const EnergyFlowScene = ({ className = '' }) => {
                 this.baseZ = z;
                 this.color = color;
 
-                // Position logic happens in update()
-                this.x = 0;
-                this.y = 0;
+                // Set initial position to target position immediately to avoid startup animation
+                const centerX = canvas.width * config.centerXRatio;
+                const centerY = canvas.height * config.centerYRatio;
+                const perspective = 350 / (350 + this.baseZ);
+
+                this.x = (this.baseX * perspective) + centerX;
+                this.y = (this.baseY * perspective) + centerY;
 
                 this.vx = 0;    // Velocity X
                 this.vy = 0;    // Velocity Y
